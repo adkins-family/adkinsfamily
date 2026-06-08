@@ -1,0 +1,1671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Adkins">
+<meta name="theme-color" content="#f9f8f6">
+<title>Adkins</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f9f8f6;
+  --surface:#ffffff;
+  --border:#ece9e3;
+  --border2:#ddd9d0;
+  --text:#1c1a17;
+  --text2:#6b6560;
+  --text3:#aaa49c;
+  --green:#2a6042;
+  --green-light:#e8f2ec;
+  --green-border:#c0d8c8;
+  --gold:#8a6820;
+  --gold-light:#f5edda;
+  --gold-border:#dcc88a;
+  --red:#8b3030;
+  --red-light:#faeaea;
+  --blue:#2a4a7a;
+  --blue-light:#e8eef8;
+  --r:12px;
+  --r-sm:8px;
+  --r-pill:30px;
+}
+html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;-webkit-font-smoothing:antialiased}
+
+/* ── LAYOUT ── */
+.shell{max-width:480px;margin:0 auto;padding:0 0 80px;min-height:100vh}
+
+/* ── NAV BAR ── */
+.navbar{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);display:flex;z-index:100;max-width:480px;margin:0 auto}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 0 12px;cursor:pointer;gap:4px;transition:all .15s;border:none;background:none;font-family:'DM Sans',sans-serif;color:var(--text3)}
+.nav-item.active{color:var(--green)}
+.nav-icon{font-size:20px;line-height:1}
+.nav-label{font-size:10px;font-weight:500;letter-spacing:.04em}
+
+/* ── SECTIONS ── */
+.section{display:none;padding:0 16px}
+.section.active{display:block}
+
+/* ── PAGE HEADER ── */
+.page-header{padding:20px 16px 12px;position:sticky;top:0;background:var(--bg);z-index:10;border-bottom:1px solid var(--border);margin:0 -16px 16px}
+.page-title{font-family:'DM Serif Display',serif;font-size:28px;color:var(--text);font-style:italic}
+.page-subtitle{font-size:12px;color:var(--text3);margin-top:2px}
+
+/* ── HOME SCREEN ── */
+.home-header{padding:32px 16px 20px}
+.home-logo{font-family:'DM Serif Display',serif;font-size:36px;color:var(--text);font-style:italic}
+.home-logo span{color:var(--green)}
+.home-date{font-size:13px;color:var(--text3);margin-top:4px}
+
+.home-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 16px;margin-bottom:10px}
+.home-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent}
+.home-card:active{transform:scale(.98);background:var(--bg)}
+.home-card.full{grid-column:span 2}
+.home-card-icon{font-size:22px;margin-bottom:8px;line-height:1}
+.home-card-title{font-size:13px;font-weight:500;color:var(--text);margin-bottom:3px}
+.home-card-sub{font-size:11px;color:var(--text3);line-height:1.4}
+.home-card-count{font-family:'DM Serif Display',serif;font-size:28px;color:var(--green);margin-bottom:2px;font-style:italic}
+
+.home-briefing{margin:0 16px 10px;background:var(--green-light);border:1px solid var(--green-border);border-radius:var(--r);padding:14px 16px}
+.briefing-label{font-size:10px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--green);margin-bottom:6px}
+.briefing-text{font-size:13px;color:#1a3d2a;line-height:1.6}
+
+/* ── CARDS ── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-bottom:10px;overflow:hidden}
+.card-header{padding:14px 16px 0;display:flex;align-items:center;justify-content:space-between}
+.card-title{font-size:11px;font-weight:500;letter-spacing:.07em;text-transform:uppercase;color:var(--text3)}
+.card-body{padding:8px 16px 14px}
+
+/* ── TASK ITEMS ── */
+.task-item{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+.task-item:last-child{border-bottom:none}
+.task-check{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;margin-top:1px;background:var(--surface)}
+.task-check.done{background:var(--green);border-color:var(--green)}
+.task-check.done::after{content:'✓';font-size:11px;color:#fff;font-weight:500}
+.task-body{flex:1;min-width:0}
+.task-text{font-size:14px;color:var(--text);line-height:1.4}
+.task-text.done{text-decoration:line-through;color:var(--text3)}
+.task-who{display:inline-block;font-size:10px;font-weight:500;padding:2px 7px;border-radius:var(--r-pill);margin-top:4px}
+.who-nick{background:var(--green-light);color:var(--green)}
+.who-michael{background:var(--gold-light);color:var(--gold)}
+.who-both{background:var(--blue-light);color:var(--blue)}
+.task-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:18px;padding:0 4px;flex-shrink:0}
+
+/* ── SECTION LABEL ── */
+.sec-label{font-size:10px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);padding:14px 0 6px;border-bottom:1px solid var(--border);margin-bottom:2px}
+.sec-label:first-child{padding-top:0}
+
+/* ── ADD INPUT ── */
+.add-row{display:flex;gap:8px;padding:12px 0 2px;border-top:1px solid var(--border);margin-top:4px}
+.add-input{flex:1;font-size:13px;font-family:'DM Sans',sans-serif;padding:9px 12px;border:1px solid var(--border2);border-radius:var(--r-sm);background:var(--surface);color:var(--text);outline:none}
+.add-input:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(42,96,66,.08)}
+.add-who{font-size:12px;font-family:'DM Sans',sans-serif;padding:9px 8px;border:1px solid var(--border2);border-radius:var(--r-sm);background:var(--surface);color:var(--text);outline:none;cursor:pointer}
+.add-btn{padding:9px 16px;border-radius:var(--r-sm);border:none;background:var(--green);color:#fff;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:background .15s;white-space:nowrap}
+.add-btn:active{background:#1e4a30}
+
+/* ── TRIP ITEMS ── */
+.trip-item{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.trip-item:last-child{border-bottom:none}
+.trip-date-box{width:44px;text-align:center;flex-shrink:0}
+.trip-month{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:var(--text3)}
+.trip-day{font-family:'DM Serif Display',serif;font-size:24px;color:var(--green);line-height:1;font-style:italic}
+.trip-body{flex:1;min-width:0}
+.trip-title{font-size:14px;font-weight:500;color:var(--text)}
+.trip-loc{font-size:12px;color:var(--text3);margin-top:2px}
+.trip-badge{font-size:10px;font-weight:500;padding:2px 8px;border-radius:var(--r-pill);background:var(--green-light);color:var(--green);margin-top:4px;display:inline-block}
+.trip-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:18px;padding:0 4px}
+
+/* ── HOUSE ITEMS ── */
+.house-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+.house-item:last-child{border-bottom:none}
+.house-check{width:20px;height:20px;border-radius:4px;border:1.5px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;background:var(--surface)}
+.house-check.done{background:var(--green);border-color:var(--green)}
+.house-check.done::after{content:'✓';font-size:11px;color:#fff;font-weight:500}
+.house-text{flex:1;font-size:14px;color:var(--text)}
+.house-text.done{text-decoration:line-through;color:var(--text3)}
+.house-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:18px;padding:0 4px}
+
+/* ── LIST ITEMS ── */
+.list-tab-bar{display:flex;gap:6px;overflow-x:auto;padding-bottom:12px;scrollbar-width:none}
+.list-tab-bar::-webkit-scrollbar{display:none}
+.list-tab{font-size:12px;font-weight:500;padding:6px 14px;border-radius:var(--r-pill);border:1px solid var(--border2);background:var(--surface);color:var(--text2);cursor:pointer;white-space:nowrap;transition:all .15s;font-family:'DM Sans',sans-serif}
+.list-tab.active{background:var(--green);color:#fff;border-color:var(--green)}
+.list-content{display:none}
+.list-content.active{display:block}
+.list-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+.list-item:last-child{border-bottom:none}
+.list-check{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--border2);flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;background:var(--surface);transition:all .15s}
+.list-check.done{background:var(--green);border-color:var(--green)}
+.list-check.done::after{content:'✓';font-size:10px;color:#fff;font-weight:500}
+.list-text{flex:1;font-size:14px;color:var(--text)}
+.list-text.done{text-decoration:line-through;color:var(--text3)}
+.list-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:18px;padding:0 4px}
+.new-list-row{display:flex;gap:8px;margin-top:12px}
+
+/* ── REMINDERS ── */
+.reminder-item{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+.reminder-item:last-child{border-bottom:none}
+.reminder-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.reminder-body{flex:1}
+.reminder-title{font-size:14px;color:var(--text);font-weight:500}
+.reminder-due{font-size:12px;color:var(--text3);margin-top:2px}
+.reminder-due.urgent{color:var(--red)}
+.reminder-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:18px;padding:0 4px}
+
+/* ── TOAST ── */
+#toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:#1c1a17;color:#fff;padding:9px 18px;border-radius:var(--r-pill);font-size:13px;z-index:999;transition:all .25s;pointer-events:none;opacity:0;white-space:nowrap}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+/* ── EMPTY STATE ── */
+.empty{text-align:center;padding:32px 0;color:var(--text3);font-size:13px}
+.empty-icon{font-size:28px;margin-bottom:8px}
+
+/* ── FINANCE ── */
+.acct-item{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
+.acct-item:last-child{border-bottom:none}
+.acct-name{font-size:14px;font-weight:500;color:var(--text)}
+.acct-name.editable{cursor:text}
+.acct-balance{font-family:'DM Serif Display',serif;font-size:22px;color:var(--green);font-style:italic;cursor:pointer}
+.acct-balance:hover{opacity:.7}
+.acct-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:18px;padding:0 4px}
+.total-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px;text-align:center}
+.total-label{font-size:10px;font-weight:500;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);margin-bottom:6px}
+.total-value{font-family:'DM Serif Display',serif;font-size:26px;font-style:italic;color:var(--text)}
+.total-value.green{color:var(--green)}
+.total-value.gold{color:var(--gold)}
+.bill-item{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+.bill-item:last-child{border-bottom:none}
+.bill-due-box{min-width:42px;text-align:center;flex-shrink:0}
+.bill-due-day{font-family:'DM Serif Display',serif;font-size:20px;color:var(--gold);font-style:italic;line-height:1}
+.bill-due-label{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
+.bill-body{flex:1;min-width:0}
+.bill-name{font-size:14px;font-weight:500;color:var(--text)}
+.bill-meta{font-size:11px;color:var(--text3);margin-top:2px}
+.bill-amount{font-size:14px;font-weight:500;color:var(--text);text-align:right;flex-shrink:0}
+.bill-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:18px;padding:0 4px}
+.aside-item{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
+.aside-item:last-child{border-bottom:none}
+.aside-label{font-size:14px;color:var(--text);flex:1}
+.aside-amount{font-size:14px;font-weight:500;color:var(--blue);margin-right:8px;cursor:pointer}
+.aside-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:18px;padding:0 4px}
+
+/* ── LEDGER ── */
+.ledger-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+.ledger-row:last-child{border-bottom:none}
+.ledger-row.balance-row{background:var(--green-light);border-radius:var(--r-sm);padding:10px 12px;margin:6px -4px}
+.ledger-row.balance-row .ledger-name{font-weight:600;color:var(--green)}
+.ledger-row.balance-row .ledger-amount{font-family:'DM Serif Display',serif;font-size:20px;font-style:italic;color:var(--green)}
+.ledger-row.balance-row.negative .ledger-amount{color:var(--red)}
+.ledger-name{flex:1;color:var(--text)}
+.ledger-name.editable{cursor:text}
+.ledger-amount{font-weight:500;color:var(--text);min-width:72px;text-align:right;cursor:pointer}
+.ledger-amount.negative{color:var(--red)}
+.ledger-status{font-size:10px;font-weight:500;padding:2px 7px;border-radius:var(--r-pill);cursor:pointer;white-space:nowrap}
+.ls-paid{background:#e8f2ec;color:var(--green)}
+.ls-pending{background:#faeaea;color:var(--red)}
+.ls-hold{background:#f5edda;color:var(--gold)}
+.ls-debit{background:#e8eef8;color:var(--blue)}
+.ls-auto{background:#f0f0f0;color:var(--text2)}
+.ledger-del{background:none;border:none;color:var(--red);cursor:pointer;font-size:16px;padding:0 2px;opacity:0.5}
+
+/* ── INLINE EDIT ── */
+.editable{cursor:text;border-radius:4px;transition:background .12s;padding:1px 3px;margin:-1px -3px}
+.editable:hover{background:var(--border)}
+.inline-edit{font-size:14px;font-family:'DM Sans',sans-serif;border:1px solid var(--green);border-radius:6px;padding:4px 8px;outline:none;background:var(--surface);color:var(--text);width:100%;box-shadow:0 0 0 3px rgba(42,96,66,.08)}
+.edit-hint{display:none}
+</style>
+</head>
+<body>
+
+<div id="toast"></div>
+
+<div class="shell">
+
+<!-- ═══════════ HOME ═══════════ -->
+<div id="s-home" class="section active">
+  <div class="home-header">
+    <div class="home-logo">Adkins <span>Home</span></div>
+    <div class="home-date" id="home-date">—</div>
+  </div>
+
+  <div class="home-briefing">
+    <div class="briefing-label">Today</div>
+    <div class="briefing-text" id="briefing-text">Loading...</div>
+  </div>
+
+  <div class="home-grid">
+    <div class="home-card" onclick="goTo('tasks')">
+      <div class="home-card-icon">✅</div>
+      <div class="home-card-count" id="home-task-count">—</div>
+      <div class="home-card-title">Tasks</div>
+      <div class="home-card-sub" id="home-task-sub">open tasks</div>
+    </div>
+    <div class="home-card" onclick="goTo('trips')">
+      <div class="home-card-icon">✈️</div>
+      <div class="home-card-count" id="home-trip-count">—</div>
+      <div class="home-card-title">Trips</div>
+      <div class="home-card-sub" id="home-trip-sub">coming up</div>
+    </div>
+    <div class="home-card" onclick="goTo('house')">
+      <div class="home-card-icon">🏠</div>
+      <div class="home-card-count" id="home-house-count">—</div>
+      <div class="home-card-title">House</div>
+      <div class="home-card-sub">projects & maintenance</div>
+    </div>
+    <div class="home-card" onclick="goTo('lists')">
+      <div class="home-card-icon">📋</div>
+      <div class="home-card-count" id="home-list-count">—</div>
+      <div class="home-card-title">Lists</div>
+      <div class="home-card-sub">grocery, errands & more</div>
+    </div>
+    <div class="home-card full" onclick="goTo('reminders')">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div class="home-card-icon">🔔</div>
+          <div class="home-card-title">Reminders</div>
+          <div class="home-card-sub" id="home-reminder-sub">bills, appointments & deadlines</div>
+        </div>
+        <div class="home-card-count" id="home-reminder-count" style="font-size:36px">—</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ TASKS ═══════════ -->
+<div id="s-tasks" class="section">
+  <div class="page-header">
+    <div class="page-title">Tasks</div>
+    <div class="page-subtitle">Nick · Michael · Shared</div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-title">Nick</div></div>
+    <div class="card-body">
+      <div id="nick-tasks"></div>
+      <div class="add-row">
+        <input class="add-input" id="new-nick-task" placeholder="Add Nick's task…" onkeydown="if(event.key==='Enter')addTask('nick')">
+        <button class="add-btn" onclick="addTask('nick')">Add</button>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-title">Michael</div></div>
+    <div class="card-body">
+      <div id="michael-tasks"></div>
+      <div class="add-row">
+        <input class="add-input" id="new-michael-task" placeholder="Add Michael's task…" onkeydown="if(event.key==='Enter')addTask('michael')">
+        <button class="add-btn" onclick="addTask('michael')">Add</button>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-title">Shared</div></div>
+    <div class="card-body">
+      <div id="shared-tasks"></div>
+      <div class="add-row">
+        <input class="add-input" id="new-shared-task" placeholder="Add shared task…" onkeydown="if(event.key==='Enter')addTask('shared')">
+        <button class="add-btn" onclick="addTask('shared')">Add</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ TRIPS ═══════════ -->
+<div id="s-trips" class="section">
+  <div class="page-header">
+    <div class="page-title">Trips</div>
+    <div class="page-subtitle">Upcoming travel & visits</div>
+  </div>
+  <div class="card">
+    <div class="card-body" style="padding-top:14px">
+      <div id="trips-list"></div>
+      <div class="add-row">
+        <input class="add-input" id="new-trip-title" placeholder="Trip name…">
+        <input class="add-input" id="new-trip-date" placeholder="Date (e.g. Jun 12)" style="max-width:110px">
+        <button class="add-btn" onclick="addTrip()">Add</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ HOUSE ═══════════ -->
+<div id="s-house" class="section">
+  <div class="page-header">
+    <div class="page-title">House</div>
+    <div class="page-subtitle">14102 W 69th · projects & maintenance</div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-title">Projects wishlist</div></div>
+    <div class="card-body">
+      <div id="house-projects"></div>
+      <div class="add-row">
+        <input class="add-input" id="new-project" placeholder="Add project…" onkeydown="if(event.key==='Enter')addHouse('project')">
+        <button class="add-btn" onclick="addHouse('project')">Add</button>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-title">Maintenance</div></div>
+    <div class="card-body">
+      <div id="house-maint"></div>
+      <div class="add-row">
+        <input class="add-input" id="new-maint" placeholder="Add maintenance task…" onkeydown="if(event.key==='Enter')addHouse('maint')">
+        <button class="add-btn" onclick="addHouse('maint')">Add</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ LISTS ═══════════ -->
+<div id="s-lists" class="section">
+  <div class="page-header">
+    <div class="page-title">Lists</div>
+    <div class="page-subtitle">Grocery, errands & more</div>
+  </div>
+  <div style="margin-bottom:10px">
+    <div class="list-tab-bar" id="list-tabs"></div>
+    <div id="list-contents"></div>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <input class="add-input" id="new-list-name" placeholder="New list name…" onkeydown="if(event.key==='Enter')addList()">
+      <button class="add-btn" onclick="addList()">+ List</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ REMINDERS ═══════════ -->
+<div id="s-reminders" class="section">
+  <div class="page-header">
+    <div class="page-title">Reminders</div>
+    <div class="page-subtitle">Bills, appointments & deadlines</div>
+  </div>
+  <div class="card">
+    <div class="card-body" style="padding-top:14px">
+      <div id="reminders-list"></div>
+      <div class="add-row" style="flex-wrap:wrap">
+        <input class="add-input" id="new-reminder-title" placeholder="Reminder…">
+        <input class="add-input" id="new-reminder-due" placeholder="Due date" style="max-width:110px">
+        <select id="new-reminder-color" class="add-who">
+          <option value="var(--green)">🟢 Normal</option>
+          <option value="var(--gold)">🟡 Soon</option>
+          <option value="var(--red)">🔴 Urgent</option>
+        </select>
+        <button class="add-btn" onclick="addReminder()">Add</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════ FINANCE ═══════════ -->
+<div id="s-finance" class="section">
+  <div class="page-header">
+    <div class="page-title">Finances</div>
+    <div class="page-subtitle">tap any value to update</div>
+  </div>
+
+  <!-- ACCOUNT BALANCES -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Account balances</div>
+    </div>
+    <div class="card-body" style="padding-top:10px">
+      <div id="fin-accounts"></div>
+      <div class="add-row">
+        <input class="add-input" id="new-acct-name" placeholder="Account name…">
+        <input class="add-input" id="new-acct-balance" type="number" placeholder="Balance $" style="max-width:110px">
+        <select id="new-acct-type" class="add-who">
+          <option value="checking">Checking</option>
+          <option value="savings">Savings</option>
+          <option value="joint">Joint</option>
+        </select>
+        <button class="add-btn" onclick="addAccount()">Add</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOTALS -->
+  <div id="fin-totals" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px"></div>
+
+  <!-- PAYCHECK 1 - June 1 -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Paycheck 1 · 1st of month</div>
+      <div style="font-size:11px;color:var(--text3)">Nick Checking</div>
+    </div>
+    <div class="card-body" style="padding-top:10px">
+      <div id="fin-bills-1"></div>
+      <div class="add-row" style="flex-wrap:wrap;gap:6px">
+        <input class="add-input" id="new-bill1-name" placeholder="Bill name…">
+        <input class="add-input" id="new-bill1-amount" type="number" placeholder="Amount $" style="max-width:90px">
+        <input class="add-input" id="new-bill1-source" placeholder="Payment source" style="max-width:130px">
+        <select id="new-bill1-status" class="add-who">
+          <option value="Auto">Auto</option>
+          <option value="Debit">Debit</option>
+          <option value="Manual">Manual</option>
+          <option value="Pending">Pending</option>
+        </select>
+        <button class="add-btn" onclick="addBillCycle(1)">Add</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAYCHECK 2 - June 15 -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Paycheck 2 · 15th of month</div>
+      <div style="font-size:11px;color:var(--text3)">Nick Checking</div>
+    </div>
+    <div class="card-body" style="padding-top:10px">
+      <div id="fin-bills-2"></div>
+      <div class="add-row" style="flex-wrap:wrap;gap:6px">
+        <input class="add-input" id="new-bill2-name" placeholder="Bill name…">
+        <input class="add-input" id="new-bill2-amount" type="number" placeholder="Amount $" style="max-width:90px">
+        <input class="add-input" id="new-bill2-source" placeholder="Payment source" style="max-width:130px">
+        <select id="new-bill2-status" class="add-who">
+          <option value="Auto">Auto</option>
+          <option value="Debit">Debit</option>
+          <option value="Manual">Manual</option>
+          <option value="Pending">Pending</option>
+        </select>
+        <button class="add-btn" onclick="addBillCycle(2)">Add</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MONEY SET ASIDE -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Money set aside</div>
+      <div style="font-size:11px;color:var(--text3)">goals & earmarked funds</div>
+    </div>
+    <div class="card-body" style="padding-top:10px">
+      <div id="fin-aside"></div>
+      <div class="add-row" style="flex-wrap:wrap;gap:6px">
+        <input class="add-input" id="new-aside-label" placeholder="What for…">
+        <input class="add-input" id="new-aside-amount" type="number" placeholder="Amount $" style="max-width:110px">
+        <input class="add-input" id="new-aside-saved" type="number" placeholder="Saved $" style="max-width:100px">
+        <select id="new-aside-status" class="add-who">
+          <option value="Hold">Hold</option>
+          <option value="Paid">Paid</option>
+          <option value="Pending">Pending</option>
+          <option value="Active">Active</option>
+        </select>
+        <button class="add-btn" onclick="addAside()">Add</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- HOUSE FURNISHINGS BREAKDOWN -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">House furnishings breakdown</div>
+      <div style="font-size:11px;color:var(--text3)">14102 W 69th</div>
+    </div>
+    <div class="card-body" style="padding-top:10px">
+      <div id="fin-furnish"></div>
+      <div class="add-row" style="flex-wrap:wrap;gap:6px">
+        <input class="add-input" id="new-furn-name" placeholder="Item…">
+        <input class="add-input" id="new-furn-amount" type="number" placeholder="Amount $" style="max-width:90px">
+        <select id="new-furn-status" class="add-who">
+          <option value="Hold">Hold</option>
+          <option value="Pending">Pending</option>
+          <option value="Paid">Paid</option>
+          <option value="See Below">See Below</option>
+        </select>
+        <button class="add-btn" onclick="addFurnish()">Add</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+
+<!-- ═══════════ CHECKBOOK ═══════════ -->
+<div id="s-checkbook" class="section">
+  <div class="page-header">
+    <div class="page-title">Nick's Checkbook</div>
+    <div class="page-subtitle" id="cb-subtitle">Nick Checking · running ledger</div>
+  </div>
+
+  <!-- Pay period tabs -->
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+    <div class="list-tab-bar" id="cb-tabs" style="flex:1"></div>
+    <button class="add-btn" onclick="addPayPeriod()" style="white-space:nowrap;flex-shrink:0">+ Pay Period</button>
+  </div>
+
+  <!-- Active period ledger -->
+  <div id="cb-ledger-wrap"></div>
+
+</div>
+
+</div><!-- end shell -->
+
+<!-- ═══════════ NAV BAR ═══════════ -->
+<div class="navbar">
+  <button class="nav-item active" onclick="goTo('home',this)">
+    <div class="nav-icon">⌂</div>
+    <div class="nav-label">Home</div>
+  </button>
+  <button class="nav-item" onclick="goTo('tasks',this)">
+    <div class="nav-icon">✓</div>
+    <div class="nav-label">Tasks</div>
+  </button>
+  <button class="nav-item" onclick="goTo('trips',this)">
+    <div class="nav-icon">✈</div>
+    <div class="nav-label">Trips</div>
+  </button>
+  <button class="nav-item" onclick="goTo('house',this)">
+    <div class="nav-icon">⌂</div>
+    <div class="nav-label">House</div>
+  </button>
+  <button class="nav-item" onclick="goTo('lists',this)">
+    <div class="nav-icon">≡</div>
+    <div class="nav-label">Lists</div>
+  </button>
+  <button class="nav-item" onclick="goTo('reminders',this)">
+    <div class="nav-icon">🔔</div>
+    <div class="nav-label">Remind</div>
+  </button>
+  <button class="nav-item" onclick="goTo('finance',this)">
+    <div class="nav-icon">$</div>
+    <div class="nav-label">Finance</div>
+  </button>
+  <button class="nav-item" onclick="goTo('checkbook',this)">
+    <div class="nav-icon">📒</div>
+    <div class="nav-label">Checkbook</div>
+  </button>
+</div>
+
+<script>
+// ── SUPABASE ──────────────────────────────────────────────────
+const SB_URL = 'https://bhnupipukgotsecawnhl.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJobnVwaXB1a2dvdHNlY2F3bmhsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA5MzUyNTAsImV4cCI6MjA5NjUxMTI1MH0.HPgjzZK2Ow-45kbD8DFvM5cMPaVqnuhc1tCv7wvFlOg';
+let sb = null;
+
+// ── FINANCE STATE ────────────────────────────────────────────
+const finState = {
+  accounts:  JSON.parse(localStorage.getItem('fin_accounts')  || 'null') || defaultAccounts(),
+  bills:     JSON.parse(localStorage.getItem('fin_bills')     || 'null') || defaultBills(),
+  bills1:    JSON.parse(localStorage.getItem('fin_bills1')    || 'null') || defaultBillsCycle1(),
+  bills2:    JSON.parse(localStorage.getItem('fin_bills2')    || 'null') || defaultBillsCycle2(),
+  aside:     JSON.parse(localStorage.getItem('fin_aside')     || 'null') || defaultAside(),
+  furnish:   JSON.parse(localStorage.getItem('fin_furnish')   || 'null') || defaultFurnish(),
+};
+
+function saveFinLocal(k) { localStorage.setItem('fin_'+k, JSON.stringify(finState[k])); }
+
+function defaultAccounts() { return [
+  {id:uid(),name:'Nick Checking',balance:3136,type:'checking'},
+  {id:uid(),name:'Cap 1 Joint Savings',balance:11626,type:'savings'},
+  {id:uid(),name:'Nick Savings',balance:1080,type:'savings'},
+  {id:uid(),name:'US Joint Savings',balance:2000,type:'savings'},
+  {id:uid(),name:'Adoption Fund',balance:17819,type:'savings'},
+]; }
+
+function defaultBills() { return []; } // legacy - now split by cycle
+
+function defaultBillsCycle1() { return [
+  {id:uid(),cycle:1,name:'House',amount:1600,source:'Direct Trans. Joint Checking',status:'Auto',due:'1st'},
+  {id:uid(),cycle:1,name:'Cell Phone',amount:108,source:'Manual – Venmo Jess',status:'Manual',due:'1st'},
+  {id:uid(),cycle:1,name:'ER Bill',amount:33,source:'Auto Payment AccessOne',status:'Auto',due:'4th – Auto'},
+  {id:uid(),cycle:1,name:'Car (half)',amount:198.71,source:'Auto Payment Carmax',status:'Auto',due:'8th'},
+  {id:uid(),cycle:1,name:'Going Out $',amount:200,source:'Direct Trans. Joint Checking',status:'Debit',due:'1st'},
+  {id:uid(),cycle:1,name:'Groceries',amount:150,source:'Direct Trans. Joint Checking',status:'Debit',due:'1st'},
+  {id:uid(),cycle:1,name:'W (savings)',amount:100,source:'Direct Trans. Joint Checking',status:'Debit',due:'1st'},
+  {id:uid(),cycle:1,name:'Southwest',amount:800,source:'Michael',status:'Auto',due:'1st'},
+  {id:uid(),cycle:1,name:'Vemno Cash',amount:300,source:'Transfer from Checking',status:'Auto',due:'1st'},
+  {id:uid(),cycle:1,name:'Savings (Joint)',amount:100,source:'Savings – 15th',status:'Auto',due:'1st'},
+]; }
+
+function defaultBillsCycle2() { return [
+  {id:uid(),cycle:2,name:'Car (half)',amount:198.7,source:'Auto Payment Carmax',status:'Auto',due:'15th'},
+  {id:uid(),cycle:2,name:'Southwest',amount:550,source:'Michael',status:'Auto',due:'15th'},
+  {id:uid(),cycle:2,name:'Joint Checking – House/Groceries/Going Out/SW',amount:1089,source:'Direct Trans.',status:'Auto',due:'15th'},
+  {id:uid(),cycle:2,name:'Joint Savings',amount:100,source:'Auto Trans.',status:'Auto',due:'15th'},
+  {id:uid(),cycle:2,name:'Paramount',amount:9.84,source:'Auto Payment Apple',status:'Auto',due:'17th'},
+  {id:uid(),cycle:2,name:'Spotify',amount:11.99,source:'Auto Payment Spotify',status:'Auto',due:'27th'},
+  {id:uid(),cycle:2,name:'iCloud',amount:9.99,source:'Auto Payment Apple',status:'Auto',due:'27th'},
+  {id:uid(),cycle:2,name:'Gas',amount:75,source:'Debit',status:'Debit',due:'15th'},
+  {id:uid(),cycle:2,name:'Vape',amount:50,source:'Debit',status:'Debit',due:'15th'},
+  {id:uid(),cycle:2,name:'Planet Fitness',amount:27,source:'Auto Payment PF',status:'Auto',due:'17th'},
+  {id:uid(),cycle:2,name:'Haircuts',amount:100,source:'Debit',status:'Debit',due:'15th'},
+  {id:uid(),cycle:2,name:'Meds',amount:50,source:'Debit',status:'Debit',due:'15th'},
+  {id:uid(),cycle:2,name:'Nick Savings',amount:100,source:'Savings – 15th',status:'Auto',due:'15th'},
+  {id:uid(),cycle:2,name:'Gas',amount:150,source:'Debit',status:'Debit',due:'15th'},
+]; }
+
+function defaultAside() { return [
+  {id:uid(),label:'Nick Debt',amount:12000,saved:12000,status:'Paid'},
+  {id:uid(),label:'Michael Debt',amount:12000,saved:12000,status:'Paid'},
+  {id:uid(),label:'Adoption',amount:15000,saved:17818.88,status:'Active'},
+  {id:uid(),label:'SW (Southwest)',amount:7000,saved:7000,status:'Paid'},
+  {id:uid(),label:'Savings (US Joint)',amount:1600,saved:1600,status:'Paid'},
+  {id:uid(),label:'Honeymoon',amount:2300,saved:2300,status:'Paid'},
+  {id:uid(),label:'Fence',amount:7000,saved:0,status:'Hold'},
+  {id:uid(),label:'House Furnishings',amount:8500,saved:0,status:'See Below'},
+  {id:uid(),label:'Savings (Joint)',amount:8400,saved:8400,status:'Paid'},
+]; }
+
+function defaultFurnish() { return [
+  {id:uid(),name:'W&D',amount:1521.38,status:'Pending'},
+  {id:uid(),name:'Fridge',amount:509.63,status:'Pending'},
+  {id:uid(),name:'Grill',amount:400,status:'Hold'},
+  {id:uid(),name:'Sunroom CPT',amount:1000,status:'Hold'},
+  {id:uid(),name:'Kit Island',amount:1000,status:'Hold'},
+  {id:uid(),name:'Sunroom Fan',amount:200,status:'Hold'},
+  {id:uid(),name:'Storm Door',amount:800,status:'Hold'},
+  {id:uid(),name:'Couch / Chair',amount:1000,status:'Hold'},
+  {id:uid(),name:'Laptop',amount:750,status:'Hold'},
+  {id:uid(),name:'Pest Control',amount:130,status:'Hold'},
+  {id:uid(),name:'Landscaping',amount:1189,status:'See Below'},
+]; }
+
+// ── FINANCE RENDER ────────────────────────────────────────────
+function renderFinance() {
+  renderAccounts();
+  renderTotals();
+  renderBillsCycle(1);
+  renderBillsCycle(2);
+  renderAside();
+  renderFurnish();
+}
+
+function renderAccounts() {
+  const el = document.getElementById('fin-accounts');
+  if(!el) return;
+  if(!finState.accounts.length) { el.innerHTML='<div class="empty">No accounts yet</div>'; return; }
+  el.innerHTML = finState.accounts.map(a=>`
+    <div class="acct-item">
+      <div>
+        <div class="acct-name editable" onclick="editFinField('accounts','${a.id}','name',this)">${a.name}</div>
+        <div style="font-size:11px;color:var(--text3)">${a.type}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="acct-balance editable" onclick="editFinField('accounts','${a.id}','balance',this)">$${Number(a.balance||0).toLocaleString()}</div>
+        <button class="acct-del" onclick="deleteFinItem('accounts','${a.id}')">×</button>
+      </div>
+    </div>`).join('');
+}
+
+function renderTotals() {
+  const el = document.getElementById('fin-totals');
+  if(!el) return;
+  const checking = finState.accounts.filter(a=>a.type==='checking').reduce((s,a)=>s+(Number(a.balance)||0),0);
+  const savings = finState.accounts.filter(a=>a.type==='savings').reduce((s,a)=>s+(Number(a.balance)||0),0);
+  const total = checking + savings;
+  const monthlyBills = finState.bills.reduce((s,b)=>s+(Number(b.amount)||0),0);
+  el.innerHTML = `
+    <div class="total-box"><div class="total-label">Checking</div><div class="total-value green">$${checking.toLocaleString()}</div></div>
+    <div class="total-box"><div class="total-label">Savings</div><div class="total-value green">$${savings.toLocaleString()}</div></div>
+    <div class="total-box"><div class="total-label">Total</div><div class="total-value">$${total.toLocaleString()}</div></div>`;
+}
+
+function renderBillsCycle(cycle) {
+  const key = 'bills'+cycle;
+  const el = document.getElementById('fin-bills-'+cycle);
+  if(!el) return;
+  const bills = finState[key];
+  if(!bills||!bills.length) { el.innerHTML='<div class="empty">No bills yet</div>'; return; }
+  const total = bills.reduce((s,b)=>s+(Number(b.amount)||0),0);
+  const statusColor = {Auto:'var(--green)',Debit:'var(--blue)',Manual:'var(--gold)',Pending:'var(--red)'};
+  el.innerHTML = bills.map(b=>`
+    <div class="bill-item">
+      <div class="bill-due-box">
+        <div class="bill-due-day editable" onclick="editFinField('${key}','${b.id}','due',this)" style="font-size:12px">${b.due||'—'}</div>
+        <div class="bill-due-label">due</div>
+      </div>
+      <div class="bill-body">
+        <div class="bill-name editable" onclick="editFinField('${key}','${b.id}','name',this)">${b.name}</div>
+        <div class="bill-meta editable" onclick="editFinField('${key}','${b.id}','source',this)" style="color:var(--text3)">📤 ${b.source||'tap to set source'}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;flex-direction:column;align-items:flex-end">
+        <div class="bill-amount editable" onclick="editFinField('${key}','${b.id}','amount',this)">${b.amount?'$'+Number(b.amount).toFixed(2):'—'}</div>
+        <div style="font-size:10px;font-weight:500;padding:1px 6px;border-radius:10px;background:${statusColor[b.status]||'var(--green)'}22;color:${statusColor[b.status]||'var(--green)'};cursor:pointer" onclick="cycleBillStatus('${key}','${b.id}')">${b.status||'Auto'}</div>
+      </div>
+      <button class="bill-del" onclick="deleteFinItem('${key}','${b.id}')">×</button>
+    </div>`).join('') +
+    `<div style="padding:10px 0;display:flex;justify-content:space-between;font-size:13px;border-top:1px solid var(--border);margin-top:4px">
+      <span style="color:var(--text2);font-weight:500">Cycle ${cycle} total</span>
+      <span style="font-weight:500;color:var(--green)">$${total.toFixed(2)}</span>
+    </div>`;
+}
+
+async function cycleBillStatus(key, id) {
+  const b = finState[key].find(b=>b.id===id);
+  if(!b) return;
+  const statuses = ['Auto','Debit','Manual','Pending','Paid'];
+  const idx = statuses.indexOf(b.status)||0;
+  b.status = statuses[(idx+1)%statuses.length];
+  saveFinLocal(key);
+  renderBillsCycle(parseInt(key.replace('bills','')));
+  toast(b.status);
+}
+
+async function addBillCycle(cycle) {
+  const key = 'bills'+cycle;
+  const nameEl = document.getElementById('new-bill'+cycle+'-name');
+  const amtEl = document.getElementById('new-bill'+cycle+'-amount');
+  const srcEl = document.getElementById('new-bill'+cycle+'-source');
+  const stEl = document.getElementById('new-bill'+cycle+'-status');
+  if(!nameEl) return;
+  const name = nameEl.value.trim();
+  if(!name) return;
+  const b = {id:uid(),cycle,name,amount:parseFloat(amtEl?.value)||0,source:srcEl?.value.trim()||'',status:stEl?.value||'Auto',due:cycle===1?'1st':'15th'};
+  finState[key].push(b);
+  saveFinLocal(key);
+  renderBillsCycle(cycle);
+  [nameEl,amtEl,srcEl].forEach(el=>{if(el)el.value='';});
+  toast('Bill added');
+}
+
+function renderAside() {
+  const el = document.getElementById('fin-aside');
+  if(!el) return;
+  if(!finState.aside.length) { el.innerHTML='<div class="empty">Nothing set aside yet</div>'; return; }
+  const total = finState.aside.reduce((s,a)=>s+(Number(a.amount)||0),0);
+  el.innerHTML = finState.aside.map(a=>`
+    <div class="aside-item">
+      <div class="aside-label editable" onclick="editFinField('aside','${a.id}','label',this)">${a.label}</div>
+      <div class="aside-amount editable" onclick="editFinField('aside','${a.id}','amount',this)">$${Number(a.amount||0).toLocaleString()}</div>
+      <button class="aside-del" onclick="deleteFinItem('aside','${a.id}')">×</button>
+    </div>`).join('') +
+    `<div style="padding:10px 0;display:flex;justify-content:space-between;font-size:13px;border-top:1px solid var(--border);margin-top:4px">
+      <span style="color:var(--text2);font-weight:500">Total set aside</span>
+      <span style="font-weight:500;color:var(--blue)">$${total.toLocaleString()}</span>
+    </div>`;
+}
+
+// ── FINANCE EDIT ──────────────────────────────────────────────
+function editFinField(section, id, field, el) {
+  const item = (finState[section]||[]).find(i=>i.id===id);
+  if(!item) return;
+  const input = document.createElement('input');
+  input.className = 'inline-edit';
+  input.type = (field==='balance'||field==='amount') ? 'number' : 'text';
+  input.value = item[field]||'';
+  input.placeholder = field;
+  el.replaceWith(input);
+  input.focus(); input.select();
+  async function save() {
+    const raw = input.value.trim();
+    if(raw !== '') {
+      item[field] = (field==='balance'||field==='amount') ? parseFloat(raw)||0 : raw;
+      saveFinLocal(section);
+    }
+    renderFinance();
+  }
+  input.addEventListener('blur', save);
+  input.addEventListener('keydown', e=>{ if(e.key==='Enter') input.blur(); if(e.key==='Escape') renderFinance(); });
+}
+
+function deleteFinItem(section, id) {
+  if(finState[section]) finState[section] = finState[section].filter(i=>i.id!==id);
+  saveFinLocal(section);
+  renderFinance();
+  toast('Removed');
+}
+
+async function addAccount() {
+  const nameEl = document.getElementById('new-acct-name');
+  const balEl = document.getElementById('new-acct-balance');
+  if(!nameEl) return;
+  const name = nameEl.value.trim();
+  if(!name) return;
+  const a = {id:uid(),name,balance:parseFloat(balEl?.value)||0,type:'checking'};
+  finState.accounts.push(a);
+  saveFinLocal('accounts');
+  renderFinance();
+  nameEl.value=''; if(balEl) balEl.value='';
+  toast('Account added');
+}
+
+// addBill replaced by addBillCycle
+
+async function addAside() {
+  const labelEl = document.getElementById('new-aside-label');
+  const amtEl = document.getElementById('new-aside-amount');
+  const savedEl = document.getElementById('new-aside-saved');
+  const stEl = document.getElementById('new-aside-status');
+  if(!labelEl) return;
+  const label = labelEl.value.trim();
+  if(!label) return;
+  const a = {id:uid(),label,amount:parseFloat(amtEl?.value)||0,saved:parseFloat(savedEl?.value)||0,status:stEl?.value||'Hold'};
+  finState.aside.push(a);
+  saveFinLocal('aside');
+  renderFinance();
+  [labelEl,amtEl,savedEl].forEach(el=>{if(el)el.value='';});
+  toast('Added');
+}
+
+// ── CHECKBOOK STATE ──────────────────────────────────────────
+let _savedPeriods = null;
+try { _savedPeriods = JSON.parse(localStorage.getItem('cb_periods')); } catch(e) {}
+// Reset if corrupted or has duplicates
+if(_savedPeriods && _savedPeriods.length > 0) {
+  const labels = _savedPeriods.map(p=>p.label);
+  const unique = new Set(labels);
+  if(unique.size < labels.length) { _savedPeriods = null; localStorage.removeItem('cb_periods'); }
+}
+const cbState = {
+  periods: _savedPeriods || defaultPeriods(),
+  active: parseInt(localStorage.getItem('cb_active') || '0'),
+};
+
+function saveCB() {
+  localStorage.setItem('cb_periods', JSON.stringify(cbState.periods));
+  localStorage.setItem('cb_active', cbState.active);
+}
+
+function defaultPeriods() { return [
+  {
+    id: uid(),
+    label: 'Jun 1, 2026',
+    rows: [
+      {id:uid(),name:'Balance',amount:717.08,status:'Balance',type:'balance'},
+      {id:uid(),name:'Car',amount:397,status:'Pending',type:'expense'},
+      {id:uid(),name:'SW',amount:0,status:'Paid',type:'expense'},
+      {id:uid(),name:'Credit',amount:0,status:'Paid',type:'expense'},
+      {id:uid(),name:'Cap 1',amount:29.58,status:'Hold',type:'expense'},
+      {id:uid(),name:'Nick Savings',amount:0,status:'Paid',type:'expense'},
+      {id:uid(),name:'ER Bill',amount:33,status:'Pending',type:'expense'},
+      {id:uid(),name:'Wells Fargo',amount:0,status:'Paid',type:'expense'},
+      {id:uid(),name:'Extra',amount:0,status:'Paid',type:'expense'},
+      {id:uid(),name:'Gas',amount:75,status:'Debit',type:'expense'},
+      {id:uid(),name:'Vape',amount:25,status:'Debit',type:'expense'},
+      {id:uid(),name:'Meds',amount:15,status:'Debit',type:'expense'},
+      {id:uid(),name:'Haircut',amount:50,status:'Debit',type:'expense'},
+      {id:uid(),name:'Venmo',amount:50,status:'Hold',type:'expense'},
+    ]
+  },
+  {
+    id: uid(),
+    label: 'Jun 15, 2026',
+    rows: [
+      {id:uid(),name:'Balance',amount:2500,status:'Balance',type:'balance'},
+      {id:uid(),name:'1/2 Car',amount:198.71,status:'Hold',type:'expense'},
+      {id:uid(),name:'X',amount:0,status:'Paid',type:'expense'},
+      {id:uid(),name:'SW',amount:550,status:'Auto',type:'expense'},
+      {id:uid(),name:'Joint Checking – Trans. W, SW, House, Groceries, Going Out',amount:1089,status:'Auto',type:'expense'},
+      {id:uid(),name:'Joint Savings',amount:100,status:'Auto',type:'expense'},
+      {id:uid(),name:'Paramount',amount:9.84,status:'Auto',type:'expense'},
+      {id:uid(),name:'Spotify',amount:12.99,status:'Auto',type:'expense'},
+      {id:uid(),name:'ICloud',amount:9.99,status:'Auto',type:'expense'},
+      {id:uid(),name:'Gas',amount:75,status:'Debit',type:'expense'},
+      {id:uid(),name:'Vape',amount:50,status:'Debit',type:'expense'},
+      {id:uid(),name:'Planet Fitness',amount:27,status:'Auto',type:'expense'},
+      {id:uid(),name:'X',amount:0,status:'Paid',type:'expense'},
+    ]
+  }
+]; }
+
+// ── CHECKBOOK RENDER ──────────────────────────────────────────
+function renderCheckbook() {
+  const tabsEl = document.getElementById('cb-tabs');
+  const wrapEl = document.getElementById('cb-ledger-wrap');
+  if(!tabsEl || !wrapEl) return;
+
+  // Tabs
+  tabsEl.innerHTML = cbState.periods.map((p,i) => `
+    <div style="display:flex;align-items:center;gap:0;flex-shrink:0">
+      <button class="list-tab ${i===cbState.active?'active':''}" style="border-radius:${i===cbState.active?'20px 0 0 20px':'20px'};padding-right:${i===cbState.active?'6px':'14px'}" onclick="switchPeriod(${i})">${p.label}</button>
+      ${i===cbState.active?`<button onclick="editPeriodLabelPrompt(${i})" style="font-size:11px;padding:6px 8px;border-radius:0 20px 20px 0;border:1px solid var(--green);border-left:none;background:var(--green);color:#fff;cursor:pointer;font-family:'DM Sans',sans-serif">✎</button>`:''}
+    </div>`).join('');
+
+  // Active period ledger
+  const period = cbState.periods[cbState.active];
+  if(!period) { wrapEl.innerHTML='<div class="empty">No pay periods yet</div>'; return; }
+
+  const statusClass = {Paid:'ls-paid',Pending:'ls-pending',Hold:'ls-hold',Debit:'ls-debit',Auto:'ls-auto'};
+  const balRow = period.rows.find(r=>r.type==='balance');
+  const balance = Number(balRow?.amount)||0;
+  const expenses = period.rows.filter(r=>r.type==='expense').reduce((s,r)=>s+(Number(r.amount)||0),0);
+  const remaining = balance - expenses;
+
+  wrapEl.innerHTML = `
+    <div class="card">
+      <div class="card-header" style="padding-bottom:8px">
+        <div class="card-title">${period.label}</div>
+        <button onclick="deletePayPeriod(${cbState.active})" style="font-size:11px;color:var(--text3);background:none;border:none;cursor:pointer">Delete period</button>
+      </div>
+      <div class="card-body" style="padding-top:4px">
+        <div id="cb-rows">
+          ${period.rows.map(r => {
+            if(r.type==='balance') return `
+              <div class="ledger-row balance-row">
+                <div class="ledger-name editable" onclick="editCBRow('${r.id}','name',this)">${r.name}</div>
+                <div class="ledger-amount editable" onclick="editCBRow('${r.id}','amount',this)">$${Number(r.amount).toFixed(2)}</div>
+              </div>`;
+            return `
+              <div class="ledger-row">
+                <div class="ledger-name editable" onclick="editCBRow('${r.id}','name',this)">${r.name}</div>
+                <div class="ledger-amount editable ${Number(r.amount)>0?'negative':''}" onclick="editCBRow('${r.id}','amount',this)">${Number(r.amount)===0?'—':'-$'+Number(r.amount).toFixed(2)}</div>
+                <div class="ledger-status ${statusClass[r.status]||'ls-auto'}" onclick="cycleCBStatus('${r.id}')">${r.status}</div>
+                <button class="ledger-del" onclick="deleteCBRow('${r.id}')">×</button>
+              </div>`;
+          }).join('')}
+        </div>
+        <div class="ledger-row balance-row ${remaining<0?'negative':''}">
+          <div class="ledger-name" style="font-weight:600">Remaining Balance</div>
+          <div class="ledger-amount" style="font-size:20px;color:${remaining<0?'var(--red)':'var(--green)'}">$${remaining.toFixed(2)}</div>
+        </div>
+        <div class="add-row" style="flex-wrap:wrap;gap:6px;margin-top:10px">
+          <input class="add-input" id="new-cb-name" placeholder="Item name…" onkeydown="if(event.key==='Enter')addCBRow()">
+          <input class="add-input" id="new-cb-amt" type="number" placeholder="Amount $" style="max-width:90px">
+          <select id="new-cb-status" class="add-who">
+            <option value="Pending">Pending</option>
+            <option value="Paid">Paid</option>
+            <option value="Hold">Hold</option>
+            <option value="Debit">Debit</option>
+            <option value="Auto">Auto</option>
+          </select>
+          <button class="add-btn" onclick="addCBRow()">Add row</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function switchPeriod(i) {
+  cbState.active = i;
+  saveCB();
+  renderCheckbook();
+}
+
+function editPeriodLabelPrompt(i) {
+  const p = cbState.periods[i];
+  if(!p) return;
+  const val = prompt('Rename pay period:', p.label);
+  if(val && val.trim()) { p.label = val.trim(); saveCB(); renderCheckbook(); }
+}
+
+function editCBRow(id, field, el) {
+  const period = cbState.periods[cbState.active];
+  const row = period?.rows.find(r=>r.id===id);
+  if(!row) return;
+  const input = document.createElement('input');
+  input.className = 'inline-edit';
+  input.type = field==='amount'?'number':'text';
+  input.value = row[field]||'';
+  el.replaceWith(input);
+  input.focus(); input.select();
+  function save() {
+    const val = input.value.trim();
+    if(val!=='') {
+      row[field] = field==='amount'?parseFloat(val)||0:val;
+      saveCB();
+    }
+    renderCheckbook();
+  }
+  input.addEventListener('blur',save);
+  input.addEventListener('keydown',e=>{if(e.key==='Enter')input.blur();if(e.key==='Escape')renderCheckbook();});
+}
+
+function cycleCBStatus(id) {
+  const period = cbState.periods[cbState.active];
+  const row = period?.rows.find(r=>r.id===id);
+  if(!row) return;
+  const statuses = ['Pending','Hold','Paid','Debit','Auto'];
+  const idx = statuses.indexOf(row.status);
+  row.status = statuses[(idx+1)%statuses.length];
+  saveCB();
+  renderCheckbook();
+  toast(row.status);
+}
+
+function addCBRow() {
+  const nameEl = document.getElementById('new-cb-name');
+  const amtEl = document.getElementById('new-cb-amt');
+  const stEl = document.getElementById('new-cb-status');
+  if(!nameEl) return;
+  const name = nameEl.value.trim();
+  if(!name) return;
+  const period = cbState.periods[cbState.active];
+  if(!period) return;
+  period.rows.push({id:uid(),name,amount:parseFloat(amtEl?.value)||0,status:stEl?.value||'Pending',type:'expense'});
+  saveCB();
+  renderCheckbook();
+  nameEl.value=''; if(amtEl) amtEl.value='';
+  toast('Row added');
+}
+
+function deleteCBRow(id) {
+  const period = cbState.periods[cbState.active];
+  if(!period) return;
+  period.rows = period.rows.filter(r=>r.id!==id);
+  saveCB();
+  renderCheckbook();
+  toast('Removed');
+}
+
+function addPayPeriod() {
+  const label = prompt('Pay period name (e.g. Jul 1, 2026):');
+  if(!label) return;
+  const startBal = parseFloat(prompt('Starting balance (your paycheck amount):')||'2500')||2500;
+  const newPeriod = {
+    id: uid(),
+    label: label.trim(),
+    rows: [
+      {id:uid(),name:'Balance',amount:startBal,status:'Balance',type:'balance'},
+    ]
+  };
+  cbState.periods.push(newPeriod);
+  cbState.active = cbState.periods.length - 1;
+  saveCB();
+  renderCheckbook();
+  toast('Pay period added — add your bills below!');
+}
+
+function deletePayPeriod(i) {
+  if(cbState.periods.length <= 1) { toast("Can't delete the only period"); return; }
+  cbState.periods.splice(i, 1);
+  cbState.active = Math.max(0, i-1);
+  saveCB();
+  renderCheckbook();
+  toast('Period deleted');
+}
+
+function initSB() {
+  if (typeof supabase === 'undefined') { setTimeout(initSB, 300); return; }
+  try {
+    sb = supabase.createClient(SB_URL, SB_KEY);
+    loadRemote();
+    subscribe();
+  } catch(e) { console.warn('Supabase unavailable, running local'); }
+}
+
+async function loadRemote() {
+  if (!sb) return;
+  const tables = ['tasks','trips','house','lists','reminders'];
+  for (const t of tables) {
+    try {
+      const {data,error} = await sb.from('ah_'+t).select('*');
+      if (!error && data && data.length) { state[t]=data; saveLocal(t); }
+    } catch(e) {}
+  }
+  renderAll();
+}
+
+async function upsert(table, item) {
+  if (!sb) return;
+  try { await sb.from('ah_'+table).upsert(item); } catch(e) {}
+}
+
+async function remove(table, id) {
+  if (!sb) return;
+  try { await sb.from('ah_'+table).delete().eq('id',id); } catch(e) {}
+}
+
+function subscribe() {
+  if (!sb) return;
+  ['tasks','trips','house','lists','reminders'].forEach(t => {
+    sb.channel('rt_'+t).on('postgres_changes',{event:'*',schema:'public',table:'ah_'+t},()=>loadRemote()).subscribe();
+  });
+}
+
+// ── STATE ─────────────────────────────────────────────────────
+const state = {
+  tasks:   JSON.parse(localStorage.getItem('ah_tasks')   || 'null') || defaultTasks(),
+  trips:   JSON.parse(localStorage.getItem('ah_trips')   || 'null') || defaultTrips(),
+  house:   JSON.parse(localStorage.getItem('ah_house')   || 'null') || defaultHouse(),
+  lists:   JSON.parse(localStorage.getItem('ah_lists')   || 'null') || defaultLists(),
+  reminders: JSON.parse(localStorage.getItem('ah_reminders') || 'null') || defaultReminders(),
+};
+
+function saveLocal(k) { localStorage.setItem('ah_'+k, JSON.stringify(state[k])); }
+function uid() { return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+function toast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2000);
+}
+
+// ── DEFAULTS ──────────────────────────────────────────────────
+function defaultTasks() { return [
+  {id:uid(),who:'nick',text:'Update todo list / calendar',done:false},
+  {id:uid(),who:'nick',text:'Update med app',done:false},
+  {id:uid(),who:'nick',text:'401K mailings',done:false},
+  {id:uid(),who:'nick',text:'New ID',done:false},
+  {id:uid(),who:'nick',text:'Cali new tags',done:false},
+  {id:uid(),who:'nick',text:'Name change',done:false},
+  {id:uid(),who:'nick',text:'Warranties – rugs, record player, appliances',done:false},
+  {id:uid(),who:'nick',text:'Sign up for Ace rewards',done:false},
+  {id:uid(),who:'nick',text:'Evermore nails',done:false},
+  {id:uid(),who:'nick',text:'New watch screens',done:false},
+  {id:uid(),who:'nick',text:"Dentist – Michael's Place · Jun 9",done:false},
+  {id:uid(),who:'nick',text:'Doctor physical · Jun 19',done:false},
+  {id:uid(),who:'michael',text:'Confirm Cali pet insurance',done:false},
+  {id:uid(),who:'michael',text:'Call Hyatt – hotel GC + room upgrade',done:false},
+  {id:uid(),who:'michael',text:'Name change + Kansas ID',done:false},
+  {id:uid(),who:'michael',text:'Review July budget',done:false},
+  {id:uid(),who:'michael',text:'Fence quotes – 14102 W 69th',done:false},
+  {id:uid(),who:'shared',text:'Thank you cards',done:false},
+  {id:uid(),who:'shared',text:'Final reviews – Union / Garozzos',done:false},
+  {id:uid(),who:'shared',text:'Set up 2nd photo shoot with Brianna',done:false},
+  {id:uid(),who:'shared',text:'Family Royals game',done:false},
+  {id:uid(),who:'shared',text:'Book honeymoon / trips',done:false},
+  {id:uid(),who:'shared',text:'Shop Shutterfly credit',done:false},
+  {id:uid(),who:'shared',text:'Sporting KC game',done:false},
+  {id:uid(),who:'shared',text:'BBBS trainings',done:false},
+]; }
+
+function defaultTrips() { return [
+  {id:uid(),title:"Mom in town – Beatles show!",date:'Jun 12',location:'Kansas City'},
+  {id:uid(),title:'Jess & Luca in town!',date:'Jun 18',location:'Kansas City'},
+  {id:uid(),title:'Omaha – 4th of July?',date:'Jul 3',location:'Omaha, NE'},
+  {id:uid(),title:'Honeymoon',date:'TBD',location:'Book soon!'},
+]; }
+
+function defaultHouse() { return [
+  {id:uid(),type:'project',text:'Fence – get quotes',done:false},
+  {id:uid(),type:'project',text:'Sunroom flooring',done:false},
+  {id:uid(),type:'project',text:'Kitchen island',done:false},
+  {id:uid(),type:'project',text:'Primary bedroom dressers',done:false},
+  {id:uid(),type:'project',text:'Storm door',done:false},
+  {id:uid(),type:'project',text:'Patio bar + pavers',done:false},
+  {id:uid(),type:'project',text:'Dirt and mulch',done:false},
+  {id:uid(),type:'maint',text:'Pest control – confirm done',done:false},
+  {id:uid(),type:'maint',text:'Cali pet insurance confirm',done:false},
+  {id:uid(),type:'maint',text:'Weeds and transplant',done:false},
+  {id:uid(),type:'maint',text:'Trimming and weeds',done:false},
+  {id:uid(),type:'maint',text:'Garage organization',done:false},
+  {id:uid(),type:'maint',text:'Basement organization',done:false},
+]; }
+
+function defaultLists() { return [
+  {id:uid(),name:'Grocery',items:[
+    {id:uid(),text:'Milk',done:false},
+    {id:uid(),text:'Eggs',done:false},
+    {id:uid(),text:'Coffee',done:false},
+  ]},
+  {id:uid(),name:'Errands',items:[]},
+  {id:uid(),name:'Costco',items:[]},
+]; }
+
+function defaultReminders() { return [
+  {id:uid(),title:'Car payment – $397',due:'Jun 8',color:'var(--gold)'},
+  {id:uid(),title:'Planet Fitness – $27',due:'Jun 17',color:'var(--green)'},
+  {id:uid(),title:'iCloud + Spotify',due:'Jun 27',color:'var(--green)'},
+  {id:uid(),title:'Wedding finishes due',due:'Jun 5',color:'var(--red)'},
+  {id:uid(),title:'Cali vet follow-up',due:'This week',color:'var(--gold)'},
+]; }
+
+// ── RENDER ALL ────────────────────────────────────────────────
+function renderAll() {
+  renderHome();
+  renderTasks();
+  renderTrips();
+  renderHouse();
+  renderLists();
+  renderReminders();
+  renderFinance();
+  renderCheckbook();
+}
+
+// ── HOME ──────────────────────────────────────────────────────
+function renderHome() {
+  const openTasks = state.tasks.filter(t=>!t.done).length;
+  const trips = state.trips.length;
+  const houseOpen = state.house.filter(h=>!h.done).length;
+  const listItems = state.lists.reduce((a,l)=>a+l.items.filter(i=>!i.done).length,0);
+  const reminders = state.reminders.length;
+
+  const tc = document.getElementById('home-task-count');
+  const tr = document.getElementById('home-trip-count');
+  const hc = document.getElementById('home-house-count');
+  const lc = document.getElementById('home-list-count');
+  const rc = document.getElementById('home-reminder-count');
+
+  if(tc) tc.textContent = openTasks;
+  if(tr) tr.textContent = trips;
+  if(hc) hc.textContent = houseOpen;
+  if(lc) lc.textContent = listItems;
+  if(rc) rc.textContent = reminders;
+
+  const brief = document.getElementById('briefing-text');
+  if(brief) {
+    const nextTrip = state.trips[0];
+    const urgentReminder = state.reminders.find(r=>r.color==='var(--red)');
+    let text = `You have ${openTasks} open task${openTasks!==1?'s':''} between Nick and Michael.`;
+    if(nextTrip) text += ` Next up: ${nextTrip.title} on ${nextTrip.date}.`;
+    if(urgentReminder) text += ` Don't forget: ${urgentReminder.title} (${urgentReminder.due}).`;
+    brief.textContent = text;
+  }
+}
+
+// ── TASKS ─────────────────────────────────────────────────────
+function renderTasks() {
+  ['nick','michael','shared'].forEach(who => {
+    const el = document.getElementById(who+'-tasks');
+    if(!el) return;
+    const items = state.tasks.filter(t=>t.who===who);
+    if(!items.length) { el.innerHTML='<div class="empty"><div class="empty-icon">✓</div>All clear!</div>'; return; }
+    el.innerHTML = items.map(t=>`
+      <div class="task-item">
+        <div class="task-check ${t.done?'done':''}" onclick="toggleTask('${t.id}')"></div>
+        <div class="task-body">
+          <div class="task-text ${t.done?'done':''} editable" onclick="editTask('${t.id}',this)">${t.text}</div>
+          <div class="edit-hint">tap to edit</div>
+        </div>
+        <button class="task-del" onclick="deleteTask('${t.id}')">×</button>
+      </div>`).join('');
+    renderHome();
+  });
+}
+
+function editTask(id, el) {
+  const t = state.tasks.find(t=>t.id===id);
+  if(!t) return;
+  const input = document.createElement('input');
+  input.className = 'inline-edit';
+  input.value = t.text;
+  el.replaceWith(input);
+  input.focus();
+  input.select();
+  async function save() {
+    const val = input.value.trim();
+    if(val) { t.text = val; saveLocal('tasks'); await upsert('tasks',t); }
+    renderTasks();
+  }
+  input.addEventListener('blur', save);
+  input.addEventListener('keydown', e => { if(e.key==='Enter') input.blur(); if(e.key==='Escape') renderTasks(); });
+}
+
+async function toggleTask(id) {
+  const t = state.tasks.find(t=>t.id===id);
+  if(!t) return;
+  t.done = !t.done;
+  saveLocal('tasks');
+  await upsert('tasks',t);
+  renderTasks();
+}
+
+async function addTask(who) {
+  const inp = document.getElementById('new-'+who+'-task');
+  if(!inp) return;
+  const text = inp.value.trim();
+  if(!text) return;
+  const t = {id:uid(),who,text,done:false};
+  state.tasks.push(t);
+  saveLocal('tasks');
+  await upsert('tasks',t);
+  renderTasks();
+  inp.value='';
+  toast('Task added');
+}
+
+async function deleteTask(id) {
+  state.tasks = state.tasks.filter(t=>t.id!==id);
+  saveLocal('tasks');
+  await remove('tasks',id);
+  renderTasks();
+  toast('Removed');
+}
+
+// ── TRIPS ─────────────────────────────────────────────────────
+function renderTrips() {
+  const el = document.getElementById('trips-list');
+  if(!el) return;
+  if(!state.trips.length) { el.innerHTML='<div class="empty"><div class="empty-icon">✈️</div>No trips yet — add one!</div>'; return; }
+  el.innerHTML = state.trips.map(t=>{
+    const parts = (t.date||'TBD').split(' ');
+    const month = parts[0]||'';
+    const day = parts[1]||'';
+    return `<div class="trip-item">
+      <div class="trip-date-box">
+        <div class="trip-month editable" onclick="editTrip('${t.id}','date',this)">${month}</div>
+        <div class="trip-day editable" onclick="editTrip('${t.id}','date',this)">${day||'—'}</div>
+      </div>
+      <div class="trip-body">
+        <div class="trip-title editable" onclick="editTrip('${t.id}','title',this)">${t.title}</div>
+        <div class="trip-loc editable" onclick="editTrip('${t.id}','location',this)">${t.location||'Add location…'}</div>
+        <span class="trip-badge">upcoming</span>
+      </div>
+      <button class="trip-del" onclick="deleteTrip('${t.id}')">×</button>
+    </div>`;
+  }).join('');
+  renderHome();
+}
+
+function editTrip(id, field, el) {
+  const t = state.trips.find(t=>t.id===id);
+  if(!t) return;
+  const input = document.createElement('input');
+  input.className = 'inline-edit';
+  input.value = field==='date' ? t.date : (t[field]||'');
+  input.placeholder = field==='date'?'e.g. Jun 12':field==='title'?'Trip name':'Location';
+  el.replaceWith(input);
+  input.focus(); input.select();
+  async function save() {
+    const val = input.value.trim();
+    if(val) { t[field]=val; saveLocal('trips'); await upsert('trips',t); }
+    renderTrips();
+  }
+  input.addEventListener('blur', save);
+  input.addEventListener('keydown', e=>{ if(e.key==='Enter') input.blur(); if(e.key==='Escape') renderTrips(); });
+}
+
+async function addTrip() {
+  const titleEl = document.getElementById('new-trip-title');
+  const dateEl = document.getElementById('new-trip-date');
+  if(!titleEl||!dateEl) return;
+  const title = titleEl.value.trim();
+  const date = dateEl.value.trim();
+  if(!title) return;
+  const t = {id:uid(),title,date:date||'TBD',location:''};
+  state.trips.push(t);
+  saveLocal('trips');
+  await upsert('trips',t);
+  renderTrips();
+  titleEl.value=''; dateEl.value='';
+  toast('Trip added');
+}
+
+async function deleteTrip(id) {
+  state.trips = state.trips.filter(t=>t.id!==id);
+  saveLocal('trips');
+  await remove('trips',id);
+  renderTrips();
+  toast('Removed');
+}
+
+// ── HOUSE ─────────────────────────────────────────────────────
+function renderHouse() {
+  ['project','maint'].forEach(type => {
+    const elId = type==='project'?'house-projects':'house-maint';
+    const el = document.getElementById(elId);
+    if(!el) return;
+    const items = state.house.filter(h=>h.type===type);
+    if(!items.length) { el.innerHTML='<div class="empty">Nothing yet</div>'; return; }
+    el.innerHTML = items.map(h=>`
+      <div class="house-item">
+        <div class="house-check ${h.done?'done':''}" onclick="toggleHouse('${h.id}')"></div>
+        <div class="house-text ${h.done?'done':''} editable" onclick="editHouse('${h.id}',this)">${h.text}</div>
+        <button class="house-del" onclick="deleteHouse('${h.id}')">×</button>
+      </div>`).join('');
+  });
+  renderHome();
+}
+
+function editHouse(id, el) {
+  const h = state.house.find(h=>h.id===id);
+  if(!h) return;
+  const input = document.createElement('input');
+  input.className = 'inline-edit';
+  input.value = h.text;
+  el.replaceWith(input);
+  input.focus(); input.select();
+  async function save() {
+    const val = input.value.trim();
+    if(val) { h.text=val; saveLocal('house'); await upsert('house',h); }
+    renderHouse();
+  }
+  input.addEventListener('blur', save);
+  input.addEventListener('keydown', e=>{ if(e.key==='Enter') input.blur(); if(e.key==='Escape') renderHouse(); });
+}
+
+async function toggleHouse(id) {
+  const h = state.house.find(h=>h.id===id);
+  if(!h) return;
+  h.done = !h.done;
+  saveLocal('house');
+  await upsert('house',h);
+  renderHouse();
+}
+
+async function addHouse(type) {
+  const inpId = type==='project'?'new-project':'new-maint';
+  const inp = document.getElementById(inpId);
+  if(!inp) return;
+  const text = inp.value.trim();
+  if(!text) return;
+  const h = {id:uid(),type,text,done:false};
+  state.house.push(h);
+  saveLocal('house');
+  await upsert('house',h);
+  renderHouse();
+  inp.value='';
+  toast('Added');
+}
+
+async function deleteHouse(id) {
+  state.house = state.house.filter(h=>h.id!==id);
+  saveLocal('house');
+  await remove('house',id);
+  renderHouse();
+  toast('Removed');
+}
+
+// ── LISTS ─────────────────────────────────────────────────────
+let activeList = 0;
+
+function renderLists() {
+  const tabBar = document.getElementById('list-tabs');
+  const contents = document.getElementById('list-contents');
+  if(!tabBar||!contents) return;
+  if(!state.lists.length) {
+    tabBar.innerHTML='';
+    contents.innerHTML='<div class="empty"><div class="empty-icon">📋</div>Create your first list!</div>';
+    return;
+  }
+  if(activeList >= state.lists.length) activeList = 0;
+  tabBar.innerHTML = state.lists.map((l,i)=>`
+    <button class="list-tab ${i===activeList?'active':''}" onclick="switchList(${i})">${l.name}</button>`).join('');
+  const list = state.lists[activeList];
+  const itemsHtml = list.items.length ? list.items.map(item=>`
+    <div class="list-item">
+      <div class="list-check ${item.done?'done':''}" onclick="toggleListItem(${activeList},'${item.id}')"></div>
+      <div class="list-text ${item.done?'done':''} editable" onclick="editListItem(${activeList},'${item.id}',this)">${item.text}</div>
+      <button class="list-del" onclick="deleteListItem(${activeList},'${item.id}')">×</button>
+    </div>`).join('') : '<div class="empty">List is empty</div>';
+
+  contents.innerHTML = `
+    <div class="card">
+      <div class="card-header" style="padding-bottom:8px">
+        <div class="card-title editable" onclick="editListName(${activeList},this)">${list.name}</div>
+        <button onclick="deleteList(${activeList})" style="font-size:11px;color:var(--text3);background:none;border:none;cursor:pointer">Delete list</button>
+      </div>
+      <div class="card-body">
+        <div id="active-list-items">${itemsHtml}</div>
+        <div class="add-row">
+          <input class="add-input" id="new-list-item" placeholder="Add item…" onkeydown="if(event.key==='Enter')addListItem()">
+          <button class="add-btn" onclick="addListItem()">Add</button>
+        </div>
+      </div>
+    </div>`;
+  renderHome();
+}
+
+function switchList(i) { activeList=i; renderLists(); }
+
+async function addList() {
+  const inp = document.getElementById('new-list-name');
+  if(!inp) return;
+  const name = inp.value.trim();
+  if(!name) return;
+  const l = {id:uid(),name,items:[]};
+  state.lists.push(l);
+  activeList = state.lists.length-1;
+  saveLocal('lists');
+  await upsert('lists',l);
+  renderLists();
+  inp.value='';
+  toast('List created');
+}
+
+async function deleteList(i) {
+  const id = state.lists[i].id;
+  state.lists.splice(i,1);
+  activeList = 0;
+  saveLocal('lists');
+  await remove('lists',id);
+  renderLists();
+  toast('List deleted');
+}
+
+async function addListItem() {
+  const inp = document.getElementById('new-list-item');
+  if(!inp) return;
+  const text = inp.value.trim();
+  if(!text) return;
+  const item = {id:uid(),text,done:false};
+  state.lists[activeList].items.push(item);
+  saveLocal('lists');
+  await upsert('lists',state.lists[activeList]);
+  renderLists();
+  inp.value='';
+}
+
+async function toggleListItem(li, id) {
+  const item = state.lists[li].items.find(i=>i.id===id);
+  if(!item) return;
+  item.done = !item.done;
+  saveLocal('lists');
+  await upsert('lists',state.lists[li]);
+  renderLists();
+}
+
+async function deleteListItem(li, id) {
+  state.lists[li].items = state.lists[li].items.filter(i=>i.id!==id);
+  saveLocal('lists');
+  await upsert('lists',state.lists[li]);
+  renderLists();
+}
+
+function editListItem(li, id, el) {
+  const item = state.lists[li].items.find(i=>i.id===id);
+  if(!item) return;
+  const input = document.createElement('input');
+  input.className = 'inline-edit';
+  input.value = item.text;
+  el.replaceWith(input);
+  input.focus(); input.select();
+  async function save() {
+    const val = input.value.trim();
+    if(val) { item.text=val; saveLocal('lists'); await upsert('lists',state.lists[li]); }
+    renderLists();
+  }
+  input.addEventListener('blur', save);
+  input.addEventListener('keydown', e=>{ if(e.key==='Enter') input.blur(); if(e.key==='Escape') renderLists(); });
+}
+
+function editListName(li, el) {
+  const list = state.lists[li];
+  if(!list) return;
+  const input = document.createElement('input');
+  input.className = 'inline-edit';
+  input.style.fontSize = '11px';
+  input.value = list.name;
+  el.replaceWith(input);
+  input.focus(); input.select();
+  async function save() {
+    const val = input.value.trim();
+    if(val) { list.name=val; saveLocal('lists'); await upsert('lists',list); }
+    renderLists();
+  }
+  input.addEventListener('blur', save);
+  input.addEventListener('keydown', e=>{ if(e.key==='Enter') input.blur(); if(e.key==='Escape') renderLists(); });
+}
+
+// ── REMINDERS ────────────────────────────────────────────────
+function renderReminders() {
+  const el = document.getElementById('reminders-list');
+  if(!el) return;
+  if(!state.reminders.length) { el.innerHTML='<div class="empty"><div class="empty-icon">🔔</div>No reminders</div>'; return; }
+  el.innerHTML = state.reminders.map(r=>`
+    <div class="reminder-item">
+      <div class="reminder-dot editable" style="background:${r.color};cursor:pointer" onclick="cycleReminderColor('${r.id}')" title="tap to change urgency"></div>
+      <div class="reminder-body">
+        <div class="reminder-title editable" onclick="editReminder('${r.id}','title',this)">${r.title}</div>
+        <div class="reminder-due ${r.color==='var(--red)'?'urgent':''} editable" onclick="editReminder('${r.id}','due',this)">${r.due||'Add due date…'}</div>
+      </div>
+      <button class="reminder-del" onclick="deleteReminder('${r.id}')">×</button>
+    </div>`).join('');
+  renderHome();
+}
+
+function editReminder(id, field, el) {
+  const r = state.reminders.find(r=>r.id===id);
+  if(!r) return;
+  const input = document.createElement('input');
+  input.className = 'inline-edit';
+  input.value = r[field]||'';
+  input.placeholder = field==='title'?'Reminder title':'Due date';
+  el.replaceWith(input);
+  input.focus(); input.select();
+  async function save() {
+    const val = input.value.trim();
+    if(val) { r[field]=val; saveLocal('reminders'); await upsert('reminders',r); }
+    renderReminders();
+  }
+  input.addEventListener('blur', save);
+  input.addEventListener('keydown', e=>{ if(e.key==='Enter') input.blur(); if(e.key==='Escape') renderReminders(); });
+}
+
+async function cycleReminderColor(id) {
+  const r = state.reminders.find(r=>r.id===id);
+  if(!r) return;
+  const colors = ['var(--green)','var(--gold)','var(--red)'];
+  const idx = colors.indexOf(r.color);
+  r.color = colors[(idx+1)%colors.length];
+  saveLocal('reminders');
+  await upsert('reminders',r);
+  renderReminders();
+  toast(r.color==='var(--red)'?'🔴 Urgent':r.color==='var(--gold)'?'🟡 Soon':'🟢 Normal');
+}
+
+async function addReminder() {
+  const titleEl = document.getElementById('new-reminder-title');
+  const dueEl = document.getElementById('new-reminder-due');
+  const colorEl = document.getElementById('new-reminder-color');
+  if(!titleEl) return;
+  const title = titleEl.value.trim();
+  if(!title) return;
+  const r = {id:uid(),title,due:dueEl?dueEl.value.trim():'',color:colorEl?colorEl.value:'var(--green)'};
+  state.reminders.push(r);
+  saveLocal('reminders');
+  await upsert('reminders',r);
+  renderReminders();
+  titleEl.value=''; if(dueEl) dueEl.value='';
+  toast('Reminder added');
+}
+
+async function deleteReminder(id) {
+  state.reminders = state.reminders.filter(r=>r.id!==id);
+  saveLocal('reminders');
+  await remove('reminders',id);
+  renderReminders();
+  toast('Removed');
+}
+
+// ── NAV ───────────────────────────────────────────────────────
+function goTo(page, btn) {
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+  const sec = document.getElementById('s-'+page);
+  if(sec) sec.classList.add('active');
+  if(btn) { btn.classList.add('active'); }
+  else {
+    const btns = document.querySelectorAll('.nav-item');
+    const pages = ['home','tasks','trips','house','lists','reminders','finance','checkbook'];
+    const idx = pages.indexOf(page);
+    if(idx>=0 && btns[idx]) btns[idx].classList.add('active');
+  }
+  window.scrollTo(0,0);
+}
+
+// ── INIT ──────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  const now = new Date();
+  const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const dateEl = document.getElementById('home-date');
+  if(dateEl) dateEl.textContent = DAYS[now.getDay()] + ', ' + MONTHS[now.getMonth()] + ' ' + now.getDate();
+  renderAll();
+  setTimeout(initSB, 200);
+});
+</script>
+</body>
+</html>
